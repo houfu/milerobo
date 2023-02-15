@@ -29,8 +29,8 @@ class_obj = {
         },
         {
             "dataType": ["string"],
-            "description": "Summary of the article",
-            "name": "summary"
+            "description": "Location of the article",
+            "name": "url"
         },
     ],
     "vectorizer": "text2vec-openai"
@@ -69,6 +69,7 @@ class MilelionSavetoWeaviatePipeline:
 
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
+        url = adapter.get('url')
         texts = adapter.get('text')
         from langchain.text_splitter import SpacyTextSplitter
         splitter = SpacyTextSplitter.from_tiktoken_encoder(chunk_size=900, chunk_overlap=100)
@@ -79,6 +80,6 @@ class MilelionSavetoWeaviatePipeline:
                     "content": chunk,
                     "date_pub": adapter.get('date_pub'),
                     "title": adapter.get('title'),
-                    "summary": adapter.get('summary'),
+                    "url": url,
                 }, "Article")
         return item

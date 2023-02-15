@@ -7,7 +7,7 @@ import scrapy
 
 
 class MilelionArticle(scrapy.Item):
-    summary = scrapy.Field()
+    url = scrapy.Field()
     date_pub = scrapy.Field()
     title = scrapy.Field()
     text = scrapy.Field()
