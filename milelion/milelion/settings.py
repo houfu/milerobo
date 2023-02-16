@@ -63,7 +63,8 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    "milelion.pipelines.MilelionSavetoWeaviatePipeline": 300,
+    "milelion.pipelines.SummariseArticlePipeline": 300,
+    "milelion.pipelines.MilelionSavetoWeaviatePipeline": 500,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

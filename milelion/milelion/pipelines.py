@@ -7,6 +7,10 @@ import os
 from itemadapter import ItemAdapter
 
 import weaviate
+from langchain import OpenAI
+from langchain.chains.summarize import load_summarize_chain
+from langchain.docstore.document import Document
+from langchain.text_splitter import CharacterTextSplitter
 
 class_obj = {
     "class": "Article",
@@ -29,8 +33,8 @@ class_obj = {
         },
         {
             "dataType": ["string"],
-            "description": "Location of the article",
-            "name": "url"
+            "description": "Summary of the article",
+            "name": "summary"
         },
     ],
     "vectorizer": "text2vec-openai"
@@ -69,10 +73,9 @@ class MilelionSavetoWeaviatePipeline:
 
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
-        url = adapter.get('url')
         texts = adapter.get('text')
         from langchain.text_splitter import SpacyTextSplitter
-        splitter = SpacyTextSplitter.from_tiktoken_encoder(chunk_size=900, chunk_overlap=100)
+        splitter = SpacyTextSplitter.from_tiktoken_encoder(chunk_size=300, chunk_overlap=100)
         chunks = splitter.split_text(texts)
         with self.client.batch as batch:
             for chunk in chunks:
@@ -80,6 +83,26 @@ class MilelionSavetoWeaviatePipeline:
                     "content": chunk,
                     "date_pub": adapter.get('date_pub'),
                     "title": adapter.get('title'),
-                    "url": url,
+                    "summary": adapter.get('summary'),
                 }, "Article")
+        return item
+
+
+class SummariseArticlePipeline:
+
+    def __init__(self):
+        import dotenv
+        dotenv.load_dotenv('../../.env')
+
+        llm = OpenAI(temperature=0, openai_api_key=os.getenv('OPENAI_KEY'))
+        self.chain = load_summarize_chain(llm, "refine")
+
+    def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+        texts = adapter.get('text')
+        text_splitter = CharacterTextSplitter()
+        docs = [Document(page_content=t) for t in text_splitter.split_text(texts)]
+
+        new_summary = self.chain.run(docs)
+        adapter['summary'] = new_summary
         return item
