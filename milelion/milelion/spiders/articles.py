@@ -31,6 +31,6 @@ class ArticlesSpider(scrapy.Spider):
         pub_date = time_tag['datetime']
         post = soup.find('div', class_="td-post-content")
         title_tag = soup.find('meta', property="og:title")
-        title = title_tag['content'].split("-")[0]
+        title = title_tag['content'].strip('- The MileLion')
         summary_tag = soup.find('meta', property="og:description")
         yield MilelionArticle(summary=summary_tag['content'], date_pub=pub_date, text=post.div.text, title=title)

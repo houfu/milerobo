@@ -10,7 +10,6 @@ import weaviate
 from langchain import OpenAI
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
-from langchain.text_splitter import CharacterTextSplitter
 
 class_obj = {
     "class": "Article",
@@ -99,9 +98,9 @@ class SummariseArticlePipeline:
 
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
-        texts = adapter.get('text')
-        text_splitter = CharacterTextSplitter()
-        docs = [Document(page_content=t) for t in text_splitter.split_text(texts)]
+        from langchain.text_splitter import SpacyTextSplitter
+        splitter = SpacyTextSplitter.from_tiktoken_encoder(chunk_size=1500, chunk_overlap=100)
+        docs = [Document(page_content=t) for t in splitter.split_text(adapter.get('text'))]
 
         new_summary = self.chain.run(docs)
         adapter['summary'] = new_summary
